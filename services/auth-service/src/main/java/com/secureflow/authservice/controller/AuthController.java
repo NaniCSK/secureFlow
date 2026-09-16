@@ -81,4 +81,14 @@ public class AuthController {
         return ResponseEntity.ok("JWT authentication successful");
     }
 
+    @GetMapping("/oauth2/success")
+    public ResponseEntity<String> oauth2Success(
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+                "Google authentication successful for: "
+                        + authentication.getName()
+        );
+    }
+
 }

@@ -2,6 +2,7 @@ package com.secureflow.authservice.config;
 
 
 import com.secureflow.authservice.security.JwtAuthenticationFilter;
+import com.secureflow.authservice.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,16 +14,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2AuthenticationSuccessHandler
+            oauth2AuthenticationSuccessHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oauth2AuthenticationSuccessHandler =
+                oauth2AuthenticationSuccessHandler;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .sessionManagement(session ->
+//                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(
                                 "/api/auth/register",
@@ -33,10 +41,19 @@ public class SecurityConfig {
 
                                 // Swagger / OpenAPI
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+
+                                "/oauth2/**",
+                                "/login/**"
                         ).permitAll()
                                 .anyRequest().authenticated()
-                ).addFilterBefore(
+                )
+                .oauth2Login(oauth ->
+                        oauth.successHandler(
+                                        oauth2AuthenticationSuccessHandler
+                                )
+                )
+                .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );

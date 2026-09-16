@@ -24,11 +24,22 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String passwordHash;
 
     @Column(nullable = false)
     private String provider = "LOCAL";
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
+    @Column
+    private String providerId;
 
     @Column(nullable = false)
     private String status = "ACTIVE";

@@ -122,6 +122,65 @@ public class AuthService {
 
     }
 
+    public User findOrCreateGoogleUser(String email, String name, String providerId) {
 
+        return userRepository.findByEmail(email)
+                .map(existingUser -> {
+
+                    if ("GOOGLE".equals(existingUser.getProvider())
+                            && existingUser.getProviderId() == null) {
+
+                        existingUser.setProviderId(providerId);
+
+                        return userRepository.save(existingUser);
+                    }
+
+                    return existingUser;
+
+                })
+                .orElseGet(() -> {
+
+                    User user = new User();
+
+                    user.setEmail(email);
+                    user.setProvider("GOOGLE");
+                    user.setProviderId(providerId);
+                    user.setRole("USER");
+                    user.setStatus("ACTIVE");
+
+                    return userRepository.save(user);
+                });
+    }
+
+    public LoginResponse googleLogin(
+            String email,
+            String name,
+            String providerId
+    ) {
+
+        User user = findOrCreateGoogleUser(
+                email,
+                name,
+                providerId
+        );
+
+        String accessToken = jwtService.generateToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRole()
+        );
+
+        RefreshToken refreshToken =
+                refreshTokenService.generateRefreshToken(
+                        user.getId()
+                );
+
+        return new LoginResponse(
+                accessToken,
+                refreshToken.getToken(),
+                "Bearer",
+                "Google login successful"
+        );
+    }
 
 }
