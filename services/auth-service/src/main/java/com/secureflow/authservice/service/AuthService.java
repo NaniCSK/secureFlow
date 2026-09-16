@@ -122,12 +122,17 @@ public class AuthService {
 
     }
 
-    public User findOrCreateGoogleUser(String email, String name, String providerId) {
+    public User findOrCreateOAuth2User(
+            String provider,
+            String email,
+            String name,
+            String providerId
+    ) {
 
         return userRepository.findByEmail(email)
                 .map(existingUser -> {
 
-                    if ("GOOGLE".equals(existingUser.getProvider())
+                    if (provider.equalsIgnoreCase(existingUser.getProvider())
                             && existingUser.getProviderId() == null) {
 
                         existingUser.setProviderId(providerId);
@@ -136,14 +141,13 @@ public class AuthService {
                     }
 
                     return existingUser;
-
                 })
                 .orElseGet(() -> {
 
                     User user = new User();
 
                     user.setEmail(email);
-                    user.setProvider("GOOGLE");
+                    user.setProvider(provider.toUpperCase());
                     user.setProviderId(providerId);
                     user.setRole("USER");
                     user.setStatus("ACTIVE");
@@ -152,13 +156,15 @@ public class AuthService {
                 });
     }
 
-    public LoginResponse googleLogin(
+    public LoginResponse oauth2Login(
+            String provider,
             String email,
             String name,
             String providerId
     ) {
 
-        User user = findOrCreateGoogleUser(
+        User user = findOrCreateOAuth2User(
+                provider,
                 email,
                 name,
                 providerId
@@ -179,8 +185,9 @@ public class AuthService {
                 accessToken,
                 refreshToken.getToken(),
                 "Bearer",
-                "Google login successful"
+                provider + " login successful"
         );
     }
+
 
 }

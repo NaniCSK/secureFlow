@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -33,12 +34,19 @@ public class OAuth2AuthenticationSuccessHandler
         OAuth2User oauth2User =
                 (OAuth2User) authentication.getPrincipal();
 
+        OAuth2AuthenticationToken oauth2AuthenticationToken =
+                (OAuth2AuthenticationToken) authentication;
+
+        String provider =
+                oauth2AuthenticationToken.getAuthorizedClientRegistrationId();
+
         String email = oauth2User.getAttribute("email");
         String name = oauth2User.getAttribute("name");
         String providerId = oauth2User.getAttribute("sub");
 
         LoginResponse loginResponse =
-                authService.googleLogin(
+                authService.oauth2Login(
+                        provider,
                         email,
                         name,
                         providerId
